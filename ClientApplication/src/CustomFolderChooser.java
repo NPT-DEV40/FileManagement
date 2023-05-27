@@ -7,11 +7,13 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 
+
 public class CustomFolderChooser extends JFrame {
     private JTree folderTree;
     private JButton createButton;
     private JButton openButton;
     private JButton deleteButton;
+    private JButton editButton;
     private JButton refreshButton;
     private String folderPath;
     private String filePath;
@@ -28,6 +30,7 @@ public class CustomFolderChooser extends JFrame {
         createButton = new JButton("Create");
         openButton = new JButton("Open");
         deleteButton = new JButton("Delete");
+        editButton = new JButton("Edit");
         refreshButton = new JButton("Refresh");
         createButton.addActionListener(e -> {
             try {
@@ -44,11 +47,19 @@ public class CustomFolderChooser extends JFrame {
                 throw new RuntimeException(ex);
             }
         });
+        editButton.addActionListener(e -> {
+            try {
+                editAction();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         refreshButton.addActionListener(e -> refreshAction());
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(createButton);
         buttonPanel.add(openButton);
         buttonPanel.add(deleteButton);
+        buttonPanel.add(editButton);
         buttonPanel.add(refreshButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -94,6 +105,10 @@ public class CustomFolderChooser extends JFrame {
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+    }
+
+    private void editAction() throws IOException {
+        Main.socketController.editFile();
     }
 
     private void refreshAction() {
@@ -195,10 +210,21 @@ public class CustomFolderChooser extends JFrame {
 
     private void openFile(File openFileSelected) {
         try {
+            openFileSelected.setReadOnly();
             Desktop.getDesktop().open(openFileSelected);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void editFile() throws IOException {
+        if(filePath == null) {
+            JOptionPane.showMessageDialog(null, "Please select a file to edit.");
+            return;
+        }
+        File editFileSelected = new File(filePath);
+        editFileSelected.setWritable(true);
+        Desktop.getDesktop().edit(editFileSelected);
     }
 
     private void buildFolderTree(File directory, DefaultMutableTreeNode parentNode) {
@@ -215,8 +241,7 @@ public class CustomFolderChooser extends JFrame {
     }
 
     public static void main(String[] args) {
-        // run CustomFolderChooser
-        File rootDirectory = new File("D:\\Desktop\\study");
-        new CustomFolderChooser(rootDirectory);
+        File file = new File("D:\\Desktop\\Study");
+        new CustomFolderChooser(file);
     }
 }

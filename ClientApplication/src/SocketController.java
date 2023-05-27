@@ -69,7 +69,7 @@ public class SocketController {
                                 File file = new File(fileDir);
                                 Main.customFolderChooser = new CustomFolderChooser(file);
                                 break;
-                            case "Accept Create File":
+                            case "Accept create file":
                                 File fileCreate = new File(fileDir);
                                 JFrame createFrame = new JFrame("Create");
                                 JButton createFileButton = new JButton("Create File");
@@ -86,11 +86,14 @@ public class SocketController {
                                 createFrame.setVisible(true);
                                 createFrame.pack();
                                 break;
-                            case "Accept Delete File":
+                            case "Accept delete file":
                                 Main.customFolderChooser.deleteFile();
                                 break;
+                            case "Accept edit file":
+                                Main.customFolderChooser.editFile();
+                                break;
                             case "Decline":
-                                JOptionPane.showMessageDialog(null, "File already exists");
+                                JOptionPane.showMessageDialog(null, "Server declined your request");
                                 break;
                             default:
                                 break;
@@ -170,6 +173,12 @@ public class SocketController {
 
     public void deleteFile() throws IOException {
         sender.write("Delete File");
+        sender.newLine();
+        sender.flush();
+    }
+
+    public void editFile() throws IOException {
+        sender.write("Edit File");
         sender.newLine();
         sender.flush();
     }

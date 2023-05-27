@@ -59,42 +59,13 @@ public class ClientCommunicateThread extends Thread {
                         }
                         break;
                     case "Create File":
-                        JFrame frame = new JFrame("Create File");
-                        frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-                        frame.setSize(300, 150);
-                        frame.setLocationRelativeTo(null);
-                        JPanel panel = new JPanel();
-                        panel.setLayout(new GridLayout(2, 1));
-                        JTextField textField = new JTextField("Client requesting to create file");
-                        JButton acceptButton = new JButton("Accept");
-                        JButton declineButton = new JButton("Decline");
-                        acceptButton.addActionListener(e -> {
-                            try {
-                                clientModel.sender.write("Accept Create File");
-                                clientModel.sender.newLine();
-                                clientModel.sender.flush();
-                                frame.dispose();
-                            } catch (IOException ioException) {
-                                ioException.printStackTrace();
-                            }
-                        });
-                        declineButton.addActionListener(e -> {
-                            try {
-                                clientModel.sender.write("Decline");
-                                clientModel.sender.newLine();
-                                clientModel.sender.flush();
-                                frame.dispose();
-                            } catch (IOException ioException) {
-                                ioException.printStackTrace();
-                            }
-                        });
-                        panel.add(acceptButton);
-                        panel.add(declineButton);
-                        panel.add(textField);
-                        frame.add(panel, BorderLayout.CENTER);
-                        frame.setVisible(true);
+                        requestPopup("create file");
                         break;
                     case "Delete File":
+                        requestPopup("delete file");
+                        break;
+                    case "Edit File":
+                        requestPopup("edit file");
                         break;
                     case "Server Name":
                         clientModel.sender.write(Main.socketController.serverName);
@@ -121,5 +92,45 @@ public class ClientCommunicateThread extends Thread {
                 Main.server.updateClientTable();
             }
         }
+    }
+
+    private void requestPopup(String type) {
+        JFrame frame = new JFrame("Request");
+        frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        frame.setSize(300, 150);
+        frame.setLocationRelativeTo(null);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(1, 2));
+        JLabel textLabel = new JLabel("Client requesting to " + type);
+        textLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        JButton acceptButton = new JButton("Accept");
+        JButton declineButton = new JButton("Decline");
+        panel.add(acceptButton);
+        panel.add(declineButton);
+        acceptButton.addActionListener(e -> {
+            try {
+                clientModel.sender.write("Accept " + type);
+                clientModel.sender.newLine();
+                clientModel.sender.flush();
+                frame.dispose();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+        declineButton.addActionListener(e -> {
+            try {
+                clientModel.sender.write("Decline");
+                clientModel.sender.newLine();
+                clientModel.sender.flush();
+                frame.dispose();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(textLabel, BorderLayout.CENTER);
+        mainPanel.add(panel, BorderLayout.SOUTH);
+        frame.add(mainPanel);
+        frame.setVisible(true);
     }
 }
