@@ -12,12 +12,15 @@ public class CustomFolderChooser extends JFrame {
     private JButton createButton;
     private JButton openButton;
     private JButton deleteButton;
-    private static String folderPath = null;
+    private JButton refreshButton;
+    private String folderPath;
     private String filePath;
+    private File rootPath;
     private static DefaultTreeModel defaultTreeModel;
     private DefaultMutableTreeNode rootNode;
 
     public CustomFolderChooser(File rootDirectory) {
+        rootPath = rootDirectory;
         setTitle("Custom Folder Chooser");
         setSize(400, 400);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -25,6 +28,7 @@ public class CustomFolderChooser extends JFrame {
         createButton = new JButton("Create");
         openButton = new JButton("Open");
         deleteButton = new JButton("Delete");
+        refreshButton = new JButton("Refresh");
         createButton.addActionListener(e -> {
             try {
                 createAction();
@@ -33,11 +37,19 @@ public class CustomFolderChooser extends JFrame {
             }
         });
         openButton.addActionListener(e -> openAction());
-        deleteButton.addActionListener(e -> deleteAction());
+        deleteButton.addActionListener(e -> {
+            try {
+                deleteAction();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        refreshButton.addActionListener(e -> refreshAction());
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(createButton);
         buttonPanel.add(openButton);
         buttonPanel.add(deleteButton);
+        buttonPanel.add(refreshButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         System.out.println("Root directory: " + rootDirectory.getAbsolutePath());
@@ -57,6 +69,23 @@ public class CustomFolderChooser extends JFrame {
                 }
             }
         });
+
+        folderTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) folderTree.getLastSelectedPathComponent();
+                if (selectedNode != null) {
+                    File selectedFile = (File) selectedNode.getUserObject();
+                    if (selectedFile.isDirectory()) {
+                        folderPath = selectedFile.getAbsolutePath();
+                        System.out.println("Selected folder: " + selectedFile.getAbsolutePath());
+                    } else {
+                        filePath = selectedFile.getAbsolutePath();
+                        System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+                    }
+                }
+            }
+        });
         defaultTreeModel = (DefaultTreeModel) folderTree.getModel();
 
         JScrollPane scrollPane = new JScrollPane(folderTree);
@@ -67,21 +96,14 @@ public class CustomFolderChooser extends JFrame {
         this.setVisible(true);
     }
 
-    private void deleteAction() {
-        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) folderTree.getLastSelectedPathComponent();
-        if (selectedNode != null) {
-            File selectedFile = (File) selectedNode.getUserObject();
-            if (selectedFile.isDirectory()) {
-                if (selectedFile.delete()) {
-                    System.out.println("Deleted folder: " + selectedFile.getAbsolutePath());
-                } else {
-                    System.out.println("Could not delete folder: " + selectedFile.getAbsolutePath());
-                }
-            } else {
-                System.out.println("Could not delete file: " + selectedFile.getAbsolutePath());
-            }
-        }
+    private void refreshAction() {
+        rootNode.removeAllChildren();
+        buildFolderTree(rootPath, rootNode);
         defaultTreeModel.reload();
+    }
+
+    private void deleteAction() throws IOException {
+        Main.socketController.deleteFile();
     }
 
     private void openAction() {
@@ -104,7 +126,7 @@ public class CustomFolderChooser extends JFrame {
         Main.socketController.createFile();
     }
 
-    public static void createFile(File rootDirectory) {
+    public void createFile(File rootDirectory) {
         if(folderPath == null) {
             String fileName = JOptionPane.showInputDialog("Enter file name: ");
             File newFile = new File(rootDirectory.getAbsolutePath() + File.separator + fileName);
@@ -133,7 +155,7 @@ public class CustomFolderChooser extends JFrame {
         defaultTreeModel.reload();
     }
 
-    public static void createFolder(File rootDirectory) {
+    public void createFolder(File rootDirectory) {
         if(folderPath == null) {
             String folderName = JOptionPane.showInputDialog("Enter folder name: ");
             File newFolder = new File(rootDirectory.getAbsolutePath() + File.separator + folderName);
@@ -149,6 +171,23 @@ public class CustomFolderChooser extends JFrame {
                 System.out.println("Created folder: " + newFolder.getAbsolutePath());
             } else {
                 System.out.println("Could not create folder: " + newFolder.getAbsolutePath());
+            }
+        }
+        defaultTreeModel.reload();
+    }
+
+    public void deleteFile() {
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) folderTree.getLastSelectedPathComponent();
+        if (selectedNode != null) {
+            File selectedFile = (File) selectedNode.getUserObject();
+            if (selectedFile.isDirectory()) {
+                if (selectedFile.delete()) {
+                    System.out.println("Deleted folder: " + selectedFile.getAbsolutePath());
+                } else {
+                    System.out.println("Could not delete folder: " + selectedFile.getAbsolutePath());
+                }
+            } else {
+                System.out.println("Could not delete file: " + selectedFile.getAbsolutePath());
             }
         }
         defaultTreeModel.reload();
@@ -173,5 +212,11 @@ public class CustomFolderChooser extends JFrame {
                 }
             }
         }
+    }
+
+    public static void main(String[] args) {
+        // run CustomFolderChooser
+        File rootDirectory = new File("D:\\Desktop\\study");
+        new CustomFolderChooser(rootDirectory);
     }
 }

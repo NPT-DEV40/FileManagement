@@ -1,9 +1,13 @@
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 public class ClientCommunicateThread extends Thread {
     static ClientModel clientModel;
@@ -55,7 +59,42 @@ public class ClientCommunicateThread extends Thread {
                         }
                         break;
                     case "Create File":
-                        System.out.println("acceptance");
+                        JFrame frame = new JFrame("Create File");
+                        frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+                        frame.setSize(300, 150);
+                        frame.setLocationRelativeTo(null);
+                        JPanel panel = new JPanel();
+                        panel.setLayout(new GridLayout(2, 1));
+                        JTextField textField = new JTextField("Client requesting to create file");
+                        JButton acceptButton = new JButton("Accept");
+                        JButton declineButton = new JButton("Decline");
+                        acceptButton.addActionListener(e -> {
+                            try {
+                                clientModel.sender.write("Accept Create File");
+                                clientModel.sender.newLine();
+                                clientModel.sender.flush();
+                                frame.dispose();
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+                        });
+                        declineButton.addActionListener(e -> {
+                            try {
+                                clientModel.sender.write("Decline");
+                                clientModel.sender.newLine();
+                                clientModel.sender.flush();
+                                frame.dispose();
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+                        });
+                        panel.add(acceptButton);
+                        panel.add(declineButton);
+                        panel.add(textField);
+                        frame.add(panel, BorderLayout.CENTER);
+                        frame.setVisible(true);
+                        break;
+                    case "Delete File":
                         break;
                     case "Server Name":
                         clientModel.sender.write(Main.socketController.serverName);

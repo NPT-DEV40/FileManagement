@@ -67,18 +67,15 @@ public class SocketController {
                                 fileDir = fileDir + "\\" + fileName;
                                 System.out.println("fileDir: " + fileDir);
                                 File file = new File(fileDir);
-//                                Main.customFolderChooser = new CustomFolderChooser(file);
-                                sender.write("test");
-                                sender.newLine();
-                                sender.flush();
+                                Main.customFolderChooser = new CustomFolderChooser(file);
                                 break;
-                            case "create acceptance":
+                            case "Accept Create File":
                                 File fileCreate = new File(fileDir);
                                 JFrame createFrame = new JFrame("Create");
                                 JButton createFileButton = new JButton("Create File");
                                 JButton createFolderButton = new JButton("Create Folder");
-                                createFileButton.addActionListener(e -> CustomFolderChooser.createFile(fileCreate));
-                                createFolderButton.addActionListener(e -> CustomFolderChooser.createFolder(fileCreate));
+                                createFileButton.addActionListener(e -> Main.customFolderChooser.createFile(fileCreate));
+                                createFolderButton.addActionListener(e -> Main.customFolderChooser.createFolder(fileCreate));
                                 JPanel buttonPanel = new JPanel(new FlowLayout());
                                 buttonPanel.add(createFileButton);
                                 buttonPanel.add(createFolderButton);
@@ -88,6 +85,12 @@ public class SocketController {
                                 createFrame.setLocationRelativeTo(null);
                                 createFrame.setVisible(true);
                                 createFrame.pack();
+                                break;
+                            case "Accept Delete File":
+                                Main.customFolderChooser.deleteFile();
+                                break;
+                            case "Decline":
+                                JOptionPane.showMessageDialog(null, "File already exists");
                                 break;
                             default:
                                 break;
@@ -161,6 +164,12 @@ public class SocketController {
 
     public void createFile() throws IOException {
         sender.write("Create File");
+        sender.newLine();
+        sender.flush();
+    }
+
+    public void deleteFile() throws IOException {
+        sender.write("Delete File");
         sender.newLine();
         sender.flush();
     }
